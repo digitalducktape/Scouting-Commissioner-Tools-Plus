@@ -56,3 +56,4 @@ Open `index.html` in a browser. There is no build step and no dependencies other
 
 - The course catalog (names, minutes, links) is embedded in `index.html` and was collected from the Scouting America training site. If a course code is not in it, the tool lists the code and links to the course page of the same code.
 - Classroom courses are treated as complete once the online courses are done, so the emails point leaders to the online curriculum.
+- The exception is S11, Introduction to Outdoor Leader Skills (IOLS). It is an outdoor classroom training required for Scoutmasters and Assistant Scoutmasters to be classified as position trained, so it stays on their list as an in-person course. The email tells them to check their council's training calendar for the next available course date.

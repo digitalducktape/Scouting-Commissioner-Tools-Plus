@@ -763,6 +763,12 @@ const CLASSROOM = {
   D20: 'Unit Commissioner Position-Specific Training'
 };
 const CLASSROOM_STILL_REQUIRED = new Set(['S11']);
+const CLASSROOM_NOTE = {
+  S11: 'Introduction to Outdoor Leader Skills (IOLS) is an outdoor classroom training required for Scoutmasters and Assistant Scoutmasters to be classified as position trained. Check your council\'s training calendar for the next available course date.'
+};
+function classroomNote(c) {
+  return CLASSROOM_NOTE[c.code] || (c.name + ' is a classroom training you still need to attend. Check your council\'s training calendar for the next available course date.');
+}
 
 function courseInfo(code) {
   const c = CATALOG[code];
@@ -947,7 +953,7 @@ function buildEmail(p, opts) {
     L.push((i + 1) + '. ' + c.name + (c.minutes ? ' (about ' + c.minutes + ' min)' : ''));
     L.push('   ' + c.url);
   });
-  L.push('');
+  if (n) L.push('');
   if (n > 1 && p.totalMinutes) L.push('Total time: about ' + duration(p.totalMinutes) + '.');
   if (n) L.push('Sign in with your my.Scouting account to take ' + (n === 1 ? 'it.' : 'them.'));
   if (n) L.push('');
@@ -957,8 +963,7 @@ function buildEmail(p, opts) {
     L.push('There is no classroom session to attend. The online courses cover it.', '');
   }
   p.classroomRequired.forEach(c => {
-    L.push((p.classroomCovered.length ? 'The online courses cover the rest of your classroom training. ' : '') +
-      c.name + ' is the one class you still need to attend in person. Check with your council for the next session.', '');
+    L.push((p.classroomCovered.length ? 'The online courses cover the rest of your classroom training. ' : '') + classroomNote(c), '');
   });
   if (opts.signature && opts.signature.trim()) L.push(opts.signature.trim());
   return { to: p.email, subject, body: L.join('\n').replace(/\s+$/, '') };
@@ -1081,9 +1086,12 @@ function leaderCard(p) {
   const ok = validEmail(p.email);
   const mailto = 'mailto:' + p.email + '?subject=' + encodeURIComponent(e.subject) + '&body=' + encodeURIComponent(e.body).replace(/%0A/g, '%0D%0A');
   const classroom = p.classroomRequired.map(c => '<li class="course"><span>' + esc(c.name) + '</span><span class="code">' + esc(c.code) + '</span><span class="tag">In person</span></li>').join('');
-  const note = (p.onlineCount > 0 && p.classroomCovered.length)
-    ? '<p class="note">The online courses cover ' + p.classroomCovered.map(c => esc(c.name)).join(' and ') + '. ' +
-      (p.classroomRequired.length ? 'The in-person class listed above is still required.' : 'No classroom session is needed.') + '</p>' : '';
+  const noteParts = [];
+  if (p.onlineCount > 0 && p.classroomCovered.length) {
+    noteParts.push('The online courses cover ' + p.classroomCovered.map(c => esc(c.name)).join(' and ') + '.' + (p.classroomRequired.length ? '' : ' No classroom session is needed.'));
+  }
+  p.classroomRequired.forEach(c => noteParts.push(esc(classroomNote(c))));
+  const note = noteParts.length ? '<p class="note">' + noteParts.join(' ') + '</p>' : '';
   return '<article class="leader" data-id="' + esc(p.id) + '">' +
     '<div class="leader-head"><label class="pick"><input type="checkbox" class="sel" data-id="' + esc(p.id) + '"' + (state.selected.has(p.id) ? ' checked' : '') + (ok ? '' : ' disabled') + ' aria-label="Include ' + esc(p.name) + '"></label>' +
     '<div class="who"><h3>' + esc(p.name) + '</h3><p class="pos">' + esc(p.positions.join(', ')) + '</p></div>' +
