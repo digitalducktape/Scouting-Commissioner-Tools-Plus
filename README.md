@@ -1,5 +1,13 @@
 # Scouting Commissioner Tools Plus
 
+Scouting America provides commissioners with a number of tools to support units. They are collected on the [commissioner tools](https://www.scouting.org/commissioners/tools/) page.
+
+These tools can sometimes be cumbersome to use. This repository's intent is to offer enhanced tools that help manage communication and analysis of unit health.
+
+## Tools
+
+1. [Leader Training Reminders](#leader-training-reminders): the first tool.
+
 ## Leader Training Reminders
 
 A single-page tool for unit commissioners. Load a Scouting America **Trained Leaders** status report (CSV) and it will:
