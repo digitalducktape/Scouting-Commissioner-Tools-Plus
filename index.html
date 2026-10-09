@@ -763,11 +763,18 @@ const CLASSROOM = {
   D20: 'Unit Commissioner Position-Specific Training'
 };
 const CLASSROOM_STILL_REQUIRED = new Set(['S11']);
-const CLASSROOM_NOTE = {
-  S11: 'Introduction to Outdoor Leader Skills (IOLS) is an outdoor classroom training required for Scoutmasters and Assistant Scoutmasters to be classified as position trained. Check your council\'s training calendar for the next available course date.'
+/* In-person courses that are not online and not in the catalog. They never get a my.Scouting course link. */
+const CLASSROOM_INFO = {
+  S11: {
+    url: 'https://www.scouting.org/wp-content/uploads/2018/08/3364018OLskills_Aug.pdf',
+    blurb: 'a hands-on, in-person outdoor course. Working as patrols, adult leaders learn the practical outdoor skills they need to lead Scouts in the out-of-doors, and it is required for your position to be considered trained.'
+  }
 };
+const COUNCIL_CALENDAR = 'Check your council\'s training calendar for the next available course date.';
+function classroomLink(code) { return (CLASSROOM_INFO[code] || {}).url || ''; }
 function classroomNote(c) {
-  return CLASSROOM_NOTE[c.code] || (c.name + ' is a classroom training you still need to attend. Check your council\'s training calendar for the next available course date.');
+  const i = CLASSROOM_INFO[c.code];
+  return c.name + ' is ' + (i ? i.blurb : 'a classroom training you still need to attend.') + ' ' + COUNCIL_CALENDAR;
 }
 
 function courseInfo(code) {
@@ -869,10 +876,14 @@ function parseReport(text) {
   const people = [];
   groups.forEach((recs, key) => {
     const first = recs[0];
-    const mandatory = uniq(recs.flatMap(r => splitCodes(r.Incomplete_Mandatory)));
-    const classroom = uniq(recs.flatMap(r => splitCodes(r.Incomplete_Classroom)));
-    const online = uniq(recs.flatMap(r => splitCodes(r.Incomplete_Online)))
-      .filter(c => !mandatory.includes(c))
+    const inPerson = c => CLASSROOM_STILL_REQUIRED.has(c);
+    const allMandatory = uniq(recs.flatMap(r => splitCodes(r.Incomplete_Mandatory)));
+    const allOnline = uniq(recs.flatMap(r => splitCodes(r.Incomplete_Online)));
+    /* A report can list an in-person course such as S11 under any of the three columns. It is never an online course. */
+    const mandatory = allMandatory.filter(c => !inPerson(c));
+    const classroom = uniq(recs.flatMap(r => splitCodes(r.Incomplete_Classroom)).concat(allMandatory.filter(inPerson), allOnline.filter(inPerson)));
+    const online = allOnline
+      .filter(c => !inPerson(c) && !mandatory.includes(c))
       .sort((a, b) => codeOrder(a) - codeOrder(b));
 
     const classroomRequired = classroom.filter(c => CLASSROOM_STILL_REQUIRED.has(c));
@@ -905,7 +916,7 @@ function parseReport(text) {
       trained, status, todo,
       onlineCount: online.length,
       classroomCovered: classroomCovered.map(c => ({ code: c, name: CLASSROOM[c] || c })),
-      classroomRequired: classroomRequired.map(c => ({ code: c, name: CLASSROOM[c] || c })),
+      classroomRequired: classroomRequired.map(c => ({ code: c, name: CLASSROOM[c] || c, url: classroomLink(c) })),
       totalMinutes: minutesKnown ? totalMinutes : null,
       knownMinutes: totalMinutes
     });
@@ -935,8 +946,9 @@ function validEmail(e) { return /^[^\s@,;]+@[^\s@,;]+\.[^\s@,;]+$/.test(e || '')
 function buildEmail(p, opts) {
   opts = opts || {};
   const n = p.todo.length;
+  const total = n + p.classroomRequired.length;
   const unit = p.unit || 'our unit';
-  const subject = unit + ': ' + (n ? n + ' training course' + (n === 1 ? '' : 's') + ' left to finish' : 'training to finish');
+  const subject = unit + ': ' + (total ? total + ' training course' + (total === 1 ? '' : 's') + ' left to finish' : 'training to finish');
   const L = [];
   L.push('Hi ' + p.first + ',', '');
   if (opts.why && opts.why.trim()) L.push(opts.why.trim(), '');
@@ -954,7 +966,7 @@ function buildEmail(p, opts) {
     L.push('   ' + c.url);
   });
   if (n) L.push('');
-  if (n > 1 && p.totalMinutes) L.push('Total time: about ' + duration(p.totalMinutes) + '.');
+  if (n > 1 && p.totalMinutes) L.push('Total time' + (p.classroomRequired.length ? ' for the online courses' : '') + ': about ' + duration(p.totalMinutes) + '.');
   if (n) L.push('Sign in with your my.Scouting account to take ' + (n === 1 ? 'it.' : 'them.'));
   if (n) L.push('');
   const due = formatDue(opts.due);
@@ -963,7 +975,9 @@ function buildEmail(p, opts) {
     L.push('There is no classroom session to attend. The online courses cover it.', '');
   }
   p.classroomRequired.forEach(c => {
-    L.push((p.classroomCovered.length ? 'The online courses cover the rest of your classroom training. ' : '') + classroomNote(c), '');
+    L.push((p.classroomCovered.length ? 'The online courses cover the rest of your classroom training. ' : '') + classroomNote(c));
+    if (c.url) L.push('Course overview: ' + c.url);
+    L.push('');
   });
   if (opts.signature && opts.signature.trim()) L.push(opts.signature.trim());
   return { to: p.email, subject, body: L.join('\n').replace(/\s+$/, '') };
@@ -975,7 +989,7 @@ function mergeTable(people, opts) {
   const lines = [head.join(',')];
   people.forEach(p => {
     const e = buildEmail(p, opts);
-    const courses = p.todo.map(c => c.name + ' - ' + c.url).join('\n');
+    const courses = p.todo.map(c => c.name + ' - ' + c.url).concat(p.classroomRequired.map(c => c.name + ' (in person)' + (c.url ? ' - ' + c.url : ''))).join('\n');
     lines.push([p.email, p.first, p.last, p.positions.join(' / '), e.subject, courses, e.body].map(csvCell).join(','));
   });
   return lines.join('\n');
@@ -1085,7 +1099,7 @@ function leaderCard(p) {
   const e = buildEmail(p, opts());
   const ok = validEmail(p.email);
   const mailto = 'mailto:' + p.email + '?subject=' + encodeURIComponent(e.subject) + '&body=' + encodeURIComponent(e.body).replace(/%0A/g, '%0D%0A');
-  const classroom = p.classroomRequired.map(c => '<li class="course"><span>' + esc(c.name) + '</span><span class="code">' + esc(c.code) + '</span><span class="tag">In person</span></li>').join('');
+  const classroom = p.classroomRequired.map(c => '<li class="course">' + (c.url ? '<a href="' + esc(c.url) + '" target="_blank" rel="noopener">' + esc(c.name) + '</a>' : '<span>' + esc(c.name) + '</span>') + '<span class="code">' + esc(c.code) + '</span><span class="tag">In person</span></li>').join('');
   const noteParts = [];
   if (p.onlineCount > 0 && p.classroomCovered.length) {
     noteParts.push('The online courses cover ' + p.classroomCovered.map(c => esc(c.name)).join(' and ') + '.' + (p.classroomRequired.length ? '' : ' No classroom session is needed.'));
@@ -1214,7 +1228,7 @@ function renderMetrics() {
   };
   todo.forEach(p => {
     p.todo.forEach(c => add(c, p));
-    p.classroomRequired.forEach(c => add({ code: c.code, name: c.name, url: null, kind: 'inperson', known: true }, p));
+    p.classroomRequired.forEach(c => add({ code: c.code, name: c.name, url: c.url || null, kind: 'inperson', known: true }, p));
   });
   const ranked = [...miss.values()].sort((a, b) => b.n - a.n || codeOrder(a.info.code) - codeOrder(b.info.code));
   const missRow = m => {
@@ -1234,7 +1248,7 @@ function renderMetrics() {
   }
 
   /* Closest to trained */
-  const close = todo.filter(p => p.todo.length + p.classroomRequired.length <= 3 || p.knownMinutes <= 35)
+  const close = todo.filter(p => !p.classroomRequired.length && (p.todo.length <= 3 || p.knownMinutes <= 35))
     .sort((a, b) => a.knownMinutes - b.knownMinutes || a.last.localeCompare(b.last)).slice(0, 8);
   if (close.length) {
     html += '<section class="m-card"><h2>Closest to trained</h2><ul class="win-list">' + close.map(p => {
@@ -1242,7 +1256,7 @@ function renderMetrics() {
       return '<li class="win"><div class="who2"><strong>' + esc(p.name) + '</strong><span>' + esc(p.positions.join(', ')) + ' · ' +
         esc(p.todo.map(c => c.name).concat(p.classroomRequired.map(c => c.name)).join('; ')) + '</span></div>' +
         '<span class="wt">' + n + ' course' + (n === 1 ? '' : 's') + (p.knownMinutes ? ' · ' + duration(p.knownMinutes) : '') + '</span></li>';
-    }).join('') + '</ul><p class="m-note">Leaders with three courses or fewer left, or about 35 minutes or less. A short nudge can finish these.</p></section>';
+    }).join('') + '</ul><p class="m-note">Leaders with three online courses or fewer left, or about 35 minutes or less, and no in-person class. A short nudge can finish these.</p></section>';
   }
 
   host.innerHTML = html;
