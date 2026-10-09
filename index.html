@@ -1,0 +1,1371 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Turn a Scouting America Trained Leaders report into plain course names, a unit training dashboard and personal reminder emails with direct course links.">
+<style>:root { color-scheme: light; } body { margin: 0; font-size: 14px; } img { max-width: 100%; }</style>
+</head>
+<body>
+<title>Leader Training Reminders</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: a fixed control column (load, message, bulk copy) beside a scannable list of leader cards, collapsing to one column on phones. */
+:root {
+  --paper: #f2f5fa;
+  --surface: #ffffff;
+  --ink: #15233b;
+  --ink-soft: #4b5b75;
+  --line: #d8dfeb;
+  --blue: #1d4f9f;
+  --on-blue: #ffffff;
+  --blue-soft: #e5edfa;
+  --gold: #e9b021;
+  --gold-soft: #fff3d1;
+  --gold-ink: #6b4a00;
+  --ok: #1d7448;
+  --ok-soft: #e1f3e9;
+  --crit: #b3261e;
+  --crit-soft: #fde8e6;
+  --seg-check: #1d4f9f;
+  --font-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0e1525;
+    --surface: #17213a;
+    --ink: #e8edf7;
+    --ink-soft: #a2b2cd;
+    --line: #2b3a5c;
+    --blue: #86adf0;
+    --on-blue: #0e1525;
+    --blue-soft: #1d2f58;
+    --gold: #f0bf48;
+    --gold-soft: #3a3115;
+    --gold-ink: #f3d68a;
+    --ok: #6fd3a0;
+    --ok-soft: #173a2b;
+    --crit: #ff948b;
+    --crit-soft: #442020;
+    --seg-check: #86adf0;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0e1525;
+  --surface: #17213a;
+  --ink: #e8edf7;
+  --ink-soft: #a2b2cd;
+  --line: #2b3a5c;
+  --blue: #86adf0;
+  --on-blue: #0e1525;
+  --blue-soft: #1d2f58;
+  --gold: #f0bf48;
+  --gold-soft: #3a3115;
+  --gold-ink: #f3d68a;
+  --ok: #6fd3a0;
+  --ok-soft: #173a2b;
+  --crit: #ff948b;
+  --crit-soft: #442020;
+  --seg-check: #86adf0;
+  color-scheme: dark;
+}
+/* Program themes: Pack is the default look above. detectProgram() sets data-program on the root element. */
+:root[data-program="troop"] {
+  --paper: #f3f5ef;
+  --surface: #ffffff;
+  --ink: #1c2a1d;
+  --ink-soft: #526050;
+  --line: #d9e0d0;
+  --blue: #2d5a27;
+  --on-blue: #ffffff;
+  --blue-soft: #e6eedd;
+  --gold: #c9a24a;
+  --gold-soft: #f6edd2;
+  --gold-ink: #5e4710;
+  --seg-check: #4f6b8f;
+}
+:root[data-program="crew"] {
+  --paper: #f1f7f2;
+  --surface: #ffffff;
+  --ink: #12261a;
+  --ink-soft: #455f4d;
+  --line: #d3e3d7;
+  --blue: #12713a;
+  --on-blue: #ffffff;
+  --blue-soft: #dff2e4;
+  --gold: #a8d234;
+  --gold-soft: #eef6cc;
+  --gold-ink: #3f5200;
+  --seg-check: #4f6b8f;
+}
+:root[data-program="ship"] {
+  --paper: #f6f3ec;
+  --surface: #ffffff;
+  --ink: #1b2a33;
+  --ink-soft: #576670;
+  --line: #e0d9c8;
+  --blue: #0f5a6e;
+  --on-blue: #ffffff;
+  --blue-soft: #dfeef1;
+  --gold: #cdab66;
+  --gold-soft: #f5ecd5;
+  --gold-ink: #5c4510;
+  --seg-check: #5a6f8f;
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-program="troop"]:not([data-theme="light"]) {
+    --paper: #10170f;
+    --surface: #19231a;
+    --ink: #e9efe3;
+    --ink-soft: #a6b79f;
+    --line: #2d3d2b;
+    --blue: #8fc47f;
+    --on-blue: #10170f;
+    --blue-soft: #22361f;
+    --gold: #d9b45f;
+    --gold-soft: #3a3217;
+    --gold-ink: #ecd592;
+    --seg-check: #8fa8cc;
+  }
+  :root[data-program="crew"]:not([data-theme="light"]) {
+    --paper: #0c1810;
+    --surface: #14261a;
+    --ink: #e6f4ea;
+    --ink-soft: #9fbfa9;
+    --line: #25422d;
+    --blue: #55d17f;
+    --on-blue: #0c1810;
+    --blue-soft: #174a28;
+    --gold: #bfe14d;
+    --gold-soft: #2f3b10;
+    --gold-ink: #d8ee8c;
+    --seg-check: #8fa8cc;
+  }
+  :root[data-program="ship"]:not([data-theme="light"]) {
+    --paper: #0d171c;
+    --surface: #15242b;
+    --ink: #e9f0f2;
+    --ink-soft: #9db3bb;
+    --line: #27404a;
+    --blue: #6cc3d6;
+    --on-blue: #0d171c;
+    --blue-soft: #17414d;
+    --gold: #dcbb76;
+    --gold-soft: #3a3118;
+    --gold-ink: #efd9a3;
+    --seg-check: #8fa8cc;
+  }
+}
+:root[data-theme="dark"][data-program="troop"] {
+  --paper: #10170f;
+  --surface: #19231a;
+  --ink: #e9efe3;
+  --ink-soft: #a6b79f;
+  --line: #2d3d2b;
+  --blue: #8fc47f;
+  --on-blue: #10170f;
+  --blue-soft: #22361f;
+  --gold: #d9b45f;
+  --gold-soft: #3a3217;
+  --gold-ink: #ecd592;
+  --seg-check: #8fa8cc;
+}
+:root[data-theme="dark"][data-program="crew"] {
+  --paper: #0c1810;
+  --surface: #14261a;
+  --ink: #e6f4ea;
+  --ink-soft: #9fbfa9;
+  --line: #25422d;
+  --blue: #55d17f;
+  --on-blue: #0c1810;
+  --blue-soft: #174a28;
+  --gold: #bfe14d;
+  --gold-soft: #2f3b10;
+  --gold-ink: #d8ee8c;
+  --seg-check: #8fa8cc;
+}
+:root[data-theme="dark"][data-program="ship"] {
+  --paper: #0d171c;
+  --surface: #15242b;
+  --ink: #e9f0f2;
+  --ink-soft: #9db3bb;
+  --line: #27404a;
+  --blue: #6cc3d6;
+  --on-blue: #0d171c;
+  --blue-soft: #17414d;
+  --gold: #dcbb76;
+  --gold-soft: #3a3118;
+  --gold-ink: #efd9a3;
+  --seg-check: #8fa8cc;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.5; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-inline: 16px; padding-block: 22px 56px; }
+h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; line-height: 1.2; }
+button, input, textarea, select { font: inherit; color: inherit; }
+a { color: var(--blue); }
+:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; border-radius: 4px; }
+
+.top { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 6px 24px; padding-bottom: 16px; border-bottom: 3px solid var(--gold); margin-bottom: 20px; }
+.top h1 { font-size: clamp(1.5rem, 1.1rem + 1.6vw, 2.1rem); font-weight: 800; letter-spacing: -0.01em; }
+.program-badge { display: inline-block; vertical-align: middle; margin-left: 8px; padding: 2px 10px; border-radius: 99px; background: var(--blue); color: var(--on-blue); font-size: 0.72rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
+.top .meta { color: var(--ink-soft); font-size: 0.9rem; min-width: 0; overflow-wrap: anywhere; }
+
+.layout { display: grid; grid-template-columns: minmax(0, 330px) minmax(0, 1fr); gap: 22px; align-items: start; }
+@media (max-width: 880px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+.side { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+@media (min-width: 881px) { .side { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); } }
+
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.panel h2 { font-size: 1rem; font-weight: 600; }
+.hint { color: var(--ink-soft); font-size: 0.85rem; margin: 0; }
+
+.drop { border: 2px dashed var(--line); border-radius: 8px; padding: 16px; text-align: center; display: flex; flex-direction: column; gap: 8px; align-items: center; transition: background 0.15s, border-color 0.15s; }
+.drop.over { background: var(--blue-soft); border-color: var(--blue); }
+.drop input[type="file"] { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.privacy { font-size: 0.8rem; color: var(--ink-soft); margin: 0; }
+.error { background: var(--crit-soft); color: var(--crit); border-radius: 8px; padding: 10px 12px; font-size: 0.9rem; margin: 0; }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 7px 12px; font-weight: 500; font-size: 0.88rem; cursor: pointer; text-decoration: none; color: var(--ink); min-height: 36px; }
+.btn:hover { border-color: var(--blue); }
+.btn.primary { background: var(--blue); color: var(--on-blue); border-color: var(--blue); }
+.btn.primary:hover { filter: brightness(1.08); }
+.btn.small { padding: 4px 10px; min-height: 30px; font-size: 0.82rem; }
+
+label.field { display: flex; flex-direction: column; gap: 4px; font-size: 0.85rem; font-weight: 500; }
+label.field input, label.field textarea { background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font-weight: 400; font-size: 0.92rem; width: 100%; }
+label.field textarea { resize: vertical; min-height: 64px; }
+
+.bulk-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.selrow { display: flex; align-items: center; gap: 8px; font-size: 0.88rem; font-weight: 500; }
+.fallback textarea { width: 100%; min-height: 150px; font-family: var(--font-mono); font-size: 0.78rem; background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 8px; }
+
+.main { min-width: 0; display: flex; flex-direction: column; gap: 18px; }
+.banner { background: var(--gold-soft); color: var(--gold-ink); border-radius: 8px; padding: 10px 14px; font-size: 0.9rem; margin: 0; }
+.summary { margin: 0; font-size: 0.95rem; color: var(--ink-soft); display: flex; flex-wrap: wrap; gap: 4px 18px; }
+.summary strong { color: var(--ink); font-variant-numeric: tabular-nums; font-size: 1.05rem; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.toolbar input[type="search"] { flex: 1 1 220px; min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
+.unknown { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; font-size: 0.85rem; margin: 0; }
+
+.sect-title { font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-soft); margin: 0 0 8px; }
+.cards { display: flex; flex-direction: column; gap: 12px; }
+.leader { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.leader-head { display: flex; gap: 12px; align-items: flex-start; }
+.leader-head .pick { padding-top: 3px; }
+.leader-head input[type="checkbox"], .selrow input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--blue); }
+.who { flex: 1 1 auto; min-width: 0; }
+.who h3 { font-size: 1.08rem; font-weight: 600; }
+.who .pos { margin: 2px 0 0; color: var(--ink-soft); font-size: 0.86rem; overflow-wrap: anywhere; }
+.count { text-align: right; flex: 0 0 auto; font-size: 0.82rem; color: var(--ink-soft); display: flex; flex-direction: column; }
+.count strong { font-family: var(--font-display); font-size: 1rem; color: var(--ink); }
+
+.courses { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 290px), 1fr)); gap: 6px 18px; }
+.course { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; padding: 6px 0; border-top: 1px solid var(--line); min-width: 0; }
+.course a { font-weight: 500; overflow-wrap: anywhere; }
+.course .code { font-family: var(--font-mono); font-size: 0.72rem; color: var(--ink-soft); }
+.course .min { font-size: 0.78rem; color: var(--ink-soft); font-variant-numeric: tabular-nums; margin-left: auto; }
+.tag { font-size: 0.68rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; padding: 1px 7px; border-radius: 99px; background: var(--gold-soft); color: var(--gold-ink); }
+.tag.warn { background: var(--crit-soft); color: var(--crit); }
+.note { margin: 0; font-size: 0.85rem; color: var(--ink-soft); background: var(--blue-soft); border-radius: 8px; padding: 8px 12px; overflow-wrap: anywhere; }
+
+.leader-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; border-top: 1px solid var(--line); padding-top: 10px; }
+.addr { font-family: var(--font-mono); font-size: 0.8rem; user-select: all; overflow-wrap: anywhere; min-width: 0; flex: 1 1 200px; }
+.addr.missing { color: var(--crit); font-family: var(--font-body); user-select: auto; }
+.acts { display: flex; flex-wrap: wrap; gap: 6px; }
+.preview { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; font-family: var(--font-mono); font-size: 0.78rem; line-height: 1.55; background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 12px; user-select: all; }
+
+details.done { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; }
+details.done summary { cursor: pointer; font-weight: 600; font-size: 0.92rem; }
+details.done ul { list-style: none; margin: 10px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); gap: 4px 18px; font-size: 0.88rem; }
+details.done li span { color: var(--ink-soft); font-size: 0.8rem; }
+.welcome { background: var(--surface); border: 1px solid var(--line); border-top: 4px solid var(--gold); border-radius: 10px; padding: 24px 22px; display: flex; flex-direction: column; gap: 16px; }
+.welcome h2 { font-size: clamp(1.25rem, 1rem + 1vw, 1.6rem); font-weight: 800; }
+.welcome p { margin: 0; color: var(--ink-soft); max-width: 60ch; }
+.welcome ol { margin: 0; padding: 0; list-style: none; display: grid; gap: 12px; counter-reset: step; max-width: 60ch; }
+.welcome li { display: grid; grid-template-columns: 30px 1fr; gap: 12px; align-items: start; counter-increment: step; }
+.welcome li::before { content: counter(step); width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--blue-soft); color: var(--blue); font-family: var(--font-display); font-weight: 800; }
+.welcome li strong { display: block; }
+.welcome li span { color: var(--ink-soft); font-size: 0.9rem; }
+.welcome .actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.banner { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; justify-content: space-between; }
+.empty { background: var(--surface); border: 1px dashed var(--line); border-radius: 10px; padding: 22px; text-align: center; color: var(--ink-soft); margin: 0; }
+
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); }
+.tabs button { background: none; border: 0; border-bottom: 3px solid transparent; margin-bottom: -1px; padding: 10px 14px; font-weight: 600; font-size: 0.95rem; color: var(--ink-soft); cursor: pointer; }
+.tabs button:hover { color: var(--ink); }
+.tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--gold); }
+.pane { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+#metrics { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+.m-hero { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+.m-big { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.m-big strong { font-family: var(--font-display); font-size: clamp(2.2rem, 1.6rem + 3vw, 3.2rem); font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+.m-big span { color: var(--ink-soft); }
+.stack { display: flex; gap: 2px; height: 14px; border-radius: 99px; overflow: hidden; background: var(--line); }
+.seg.ok { background: var(--ok); }
+.seg.need { background: var(--gold); }
+.seg.check { background: var(--seg-check); }
+.legend { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 0.88rem; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; }
+.legend i.ok { background: var(--ok); }
+.legend i.need { background: var(--gold); }
+.legend i.check { background: var(--seg-check); }
+.legend b { font-variant-numeric: tabular-nums; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr)); gap: 10px; }
+.kpi { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.kpi strong { font-family: var(--font-display); font-size: 1.4rem; font-variant-numeric: tabular-nums; }
+.kpi span { color: var(--ink-soft); font-size: 0.82rem; }
+.m-card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.m-card h2 { font-size: 1rem; font-weight: 600; }
+.tblwrap { overflow-x: auto; }
+table.pos { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+table.pos th { text-align: left; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-soft); font-weight: 600; padding: 6px 12px 6px 0; border-bottom: 1px solid var(--line); white-space: nowrap; }
+table.pos td { padding: 8px 12px 8px 0; border-bottom: 1px solid var(--line); vertical-align: middle; }
+table.pos .n { text-align: right; font-variant-numeric: tabular-nums; }
+table.pos .prog { min-width: 150px; }
+table.pos .prog .stack { height: 10px; }
+.miss-list, .win-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.miss { display: flex; flex-direction: column; gap: 4px; padding: 8px 0; border-top: 1px solid var(--line); }
+.miss-top { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; }
+.miss-top a, .miss-top > span:first-child { font-weight: 500; overflow-wrap: anywhere; }
+.miss-top .code { font-family: var(--font-mono); font-size: 0.72rem; color: var(--ink-soft); }
+.miss-n { margin-left: auto; font-weight: 600; font-variant-numeric: tabular-nums; font-size: 0.88rem; }
+.bar { height: 8px; background: var(--line); border-radius: 99px; overflow: hidden; }
+.bar span { display: block; height: 100%; background: var(--gold); border-radius: 99px; }
+.win { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 12px; padding: 8px 0; border-top: 1px solid var(--line); }
+.win .who2 { flex: 1 1 220px; min-width: 0; }
+.win .who2 span { display: block; color: var(--ink-soft); font-size: 0.82rem; overflow-wrap: anywhere; }
+.win .wt { font-size: 0.85rem; font-variant-numeric: tabular-nums; color: var(--ink-soft); }
+.m-more summary { cursor: pointer; font-size: 0.88rem; font-weight: 500; color: var(--blue); padding: 6px 0; }
+.m-note { margin: 0; font-size: 0.8rem; color: var(--ink-soft); }
+#toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(env(safe-area-inset-bottom, 0px) + 18px); background: var(--ink); color: var(--paper); padding: 9px 16px; border-radius: 8px; font-size: 0.88rem; max-width: calc(100% - 32px); opacity: 0; pointer-events: none; transition: opacity 0.2s; z-index: 5; }
+#toast.show { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .drop, #toast { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <h1>Leader Training Reminders <span class="program-badge" id="programBadge" hidden></span></h1>
+    <div class="meta" id="reportMeta"></div>
+  </header>
+
+  <div class="layout">
+    <aside class="side">
+      <section class="panel" aria-labelledby="h-load">
+        <h2 id="h-load">Trained Leaders report</h2>
+        <div class="drop" id="drop">
+          <input type="file" id="csvFile" accept=".csv,text/csv">
+          <label for="csvFile" class="btn primary" id="csvFileBtn" tabindex="0">Choose CSV file</label>
+          <span class="hint">or drop the file here</span>
+        </div>
+        <p class="error" id="loadError" role="alert" hidden></p>
+        <p class="privacy">The file is read inside this page. Nothing is uploaded or stored.</p>
+        <button class="btn small" id="sampleBtn" type="button">Show example data</button>
+      </section>
+
+      <section class="panel" id="panelMsg" aria-labelledby="h-msg" hidden>
+        <h2 id="h-msg">Email wording</h2>
+        <label class="field">Opening
+          <textarea id="whyText" rows="6"></textarea>
+        </label>
+        <label class="field">Finish by (optional)
+          <input type="date" id="dueDate">
+        </label>
+        <label class="field">Extra note at the top (optional)
+          <textarea id="customNote" rows="3" placeholder="For example: Our first outdoor activity is coming up."></textarea>
+        </label>
+        <label class="field">Signature
+          <textarea id="signature" rows="4" autocomplete="off"></textarea>
+        </label>
+        <p class="hint">Email links open your mail app and may do nothing in some views. Copy buttons always work.</p>
+      </section>
+
+      <section class="panel" id="panelBulk" aria-labelledby="h-bulk" hidden>
+        <h2 id="h-bulk">Send to several leaders</h2>
+        <label class="selrow"><input type="checkbox" id="selAll"> <span id="selLabel">Select all</span></label>
+        <div class="bulk-actions">
+          <button class="btn small" type="button" data-bulk="addr-comma">Copy addresses</button>
+          <button class="btn small" type="button" data-bulk="addr-semi">Copy with semicolons</button>
+          <button class="btn small" type="button" data-bulk="drafts">Copy all drafts</button>
+          <button class="btn small" type="button" data-bulk="csv">Copy mail-merge table</button>
+          <button class="btn small" type="button" data-bulk="dl-drafts" data-local hidden>Download drafts (.txt)</button>
+          <button class="btn small" type="button" data-bulk="dl-csv" data-local hidden>Download mail-merge (.csv)</button>
+        </div>
+        <p class="hint">Use semicolons for Outlook. The mail-merge table pastes into a spreadsheet, one row per leader.</p>
+        <div class="fallback" id="fallback" hidden>
+          <p class="hint" id="fallbackMsg"></p>
+          <textarea id="fallbackText" readonly aria-label="Text to copy"></textarea>
+        </div>
+      </section>
+    </aside>
+
+    <main class="main">
+      <section class="welcome" id="welcome" aria-labelledby="h-welcome">
+        <h2 id="h-welcome">Step 1: add your Trained Leaders report</h2>
+        <p>Load the CSV and this page shows where your unit stands on training. It also drafts a reminder email for each leader, with direct links to the courses they still need.</p>
+        <ol>
+          <li><div><strong>Choose your Trained Leaders CSV</strong><span>Use the Trained Leaders status report for your unit. It works for any Pack, Troop, Crew or Ship.</span></div></li>
+          <li><div><strong>Check the training status</strong><span>See who is trained, which courses are missed most, and who is closest to finishing.</span></div></li>
+          <li><div><strong>Generate reminder emails</strong><span>Copy or open a personal email for each leader who still has courses to take.</span></div></li>
+        </ol>
+        <div class="actions">
+          <label for="csvFile" class="btn primary" id="welcomeFileBtn" tabindex="0">Choose CSV file</label>
+          <button class="btn" id="sampleBtn2" type="button">Show example data</button>
+        </div>
+        <p class="privacy">The file is read inside this page. Nothing is uploaded or stored.</p>
+      </section>
+      <div id="workspace" hidden>
+      <p class="banner" id="sampleBanner" hidden><span>Example data with made-up people. Choose your own Trained Leaders CSV to replace it.</span> <button class="btn small" id="clearBtn" type="button">Clear example</button></p>
+      <div class="tabs" role="tablist" aria-label="Views">
+        <button type="button" role="tab" id="tab-status" aria-selected="true" aria-controls="panel-status">Training status</button>
+        <button type="button" role="tab" id="tab-leaders" aria-selected="false" aria-controls="panel-leaders" tabindex="-1">Generate Reminder Emails</button>
+      </div>
+      <section class="pane" id="panel-leaders" role="tabpanel" aria-labelledby="tab-leaders" hidden>
+        <p class="summary" id="summary"></p>
+        <p class="unknown" id="unknownNote" hidden></p>
+        <div class="toolbar">
+          <input type="search" id="search" placeholder="Search by name, position or email" aria-label="Search leaders">
+        </div>
+        <div id="list"></div>
+      </section>
+      <section class="pane" id="panel-status" role="tabpanel" aria-labelledby="tab-status">
+        <div id="metrics"></div>
+      </section>
+      </div>
+    </main>
+  </div>
+</div>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script id="core">
+/* ---------- Course catalog: code | plain name | minutes | optional link path ---------- */
+const BASE = 'https://training.scouting.org';
+const CATALOG_TEXT = `
+Y01|Safeguarding Youth Training|90|/learning-plans/2025
+SCO_101|Getting Started|9
+SCO_102|Officer Selection|5
+SCO_103|Crew Structure|9
+SCO_104|Membership Recruiting|6
+SCO_105|Fundraising and Budgeting for Venturing|9
+SCO_106|Board of Review for Venturing|17
+SCO_107|Event Planning|17
+SCO_108|Advising vs Leading for Venturing|11
+SCO_109|Positive Youth Development|11
+SCO_110|Awards Program for Venturing|12
+SCO_111|Officer Training for Venturing|7
+SCO_112|Annual Program Planning for Venturing|14
+SCO_113|Selecting Advisors|9
+SCO_114|Interacting with Young Adults|17
+SCO_267|What is a Charter?|15
+SCO_268|Scouting Units|10
+SCO_269|The COR Position|12
+SCO_270|BSA Standards and Volunteers|11
+SCO_275|Chartering to a Catholic Institution|11
+SCO_276|Reaching Youth Through Scouting|16
+SCO_277|Your Role as a Catholic COR|5
+SCO_278|Catholic Scouting under BSA Standards|6
+SCO_280|Introduction to Cub Scout Outdoor Program v2|5
+SCO_281|Pack Camping Program|8
+SCO_282|Planning Your Cub Scout Outdoor Event v2|17
+SCO_283|Planning Your Event|5
+SCO_301|Structure of an Exploring Program|12
+SCO_303|Benefits of Exploring|9
+SCO_305|Parts of a Meeting for Exploring|4
+SCO_306|Marketing Your Exploring Program|14
+SCO_307|Methods of Exploring|9
+SCO_308|Registering and Renewing for Exploring|8
+SCO_309|Safety Tips for Exploring|13
+SCO_310|Developing SOPs and Bylaws for Exploring|5
+SCO_311|Annual Program Planning for Exploring|11
+SCO_312|Youth Led Programs for Exploring|10
+SCO_313|Youth Officer Elections for Exploring|8
+SCO_314|Open House for Exploring|11
+SCO_315|Program Fundraising for Exploring|5
+SCO_316|Activity Planning for Exploring|9
+SCO_317|Conducting an Officer Seminar for Exploring|6
+SCO_318|Service Team Orientation for Exploring|11
+SCO_350|YE Introduction to Leadership|13
+SCO_351|YE Planning|15
+SCO_352|YE Time Management|12
+SCO_353|YE Self Regulation and Goal Setting|11
+SCO_354|YE Diversity and Culture|11
+SCO_355|YE Ethics|5
+SCO_356|YE Character of Leadership|8
+SCO_357|YE Motivation|5
+SCO_358|YE Communication|11
+SCO_359|YE Meeting Management|10
+SCO_360|YE Group Management|15
+SCO_361|YE Managing Through Others|9
+SCO_362|YE Decision Making|9
+SCO_433|Ideals and Beliefs of Scouts BSA|8
+SCO_438|Outdoor Programs for Scouts BSA|9
+SCO_445|Troop Committee Meetings for Scouts BSA|6
+SCO_450|Welcome|2
+SCO_451|Aims and Methods of Cub Scouting|6
+SCO_452|Bobcat|7
+SCO_453|Advancement|10
+SCO_454|Cub Scout Uniforms|5
+SCO_455|Conducting a Cub Scout Den Meeting|8
+SCO_456|Resources|5
+SCO_457|Den Management|5
+SCO_458|Conducting a Cub Scout Pack Meeting|12
+SCO_459|Conducting a Pack Committee Meeting|9
+SCO_460|Preparing Families for Outdoor Adventures|5
+SCO_461|Keeping Cub Scouting Safe|5
+SCO_462|Involving Adults in Cub Scouting|9
+SCO_463|Pack Structure|8
+SCO_464|Denners and Den Chiefs|8
+SCO_465|Childhood Development|7
+SCO_466|Continue the Journey|4
+SCO_467|Pack Finance|8
+SCO_468|Annual Program Planning for Cub Scouting|18
+SCO_469|Annual Charter Renewal (Rechartering)|7
+SCO_471|Advancement|10
+SCO_472|Aims and Methods of Scouts BSA|9
+SCO_473|Annual Troop Program Planning|14
+SCO_474|Introduction to Merit Badges|8
+SCO_475|Outdoor Ethics|8
+SCO_476|Outdoor Programs|10
+SCO_477|Patrol Leaders Council Meeting|11
+SCO_478|Patrol Method|10
+SCO_479|Role of Unit Key 3|7
+SCO_480|Roles of Scoutmaster and SPL|13
+SCO_481|Scouting Organization|12
+SCO_482|Troop Committee|14
+SCO_483|Troop Committee Meetings|6
+SCO_484|Troop Meeting|10
+SCO_485|Scouts BSA Uniforms|12
+SCO_486|What is a Merit Badge Counselor|7
+SCO_535|New Member Coordinator Welcome Course|13
+SCO_536|Elements of the Job|30
+SCO_550|What is STEM Scouts|8
+SCO_551|The STEM Scouts Portal|12
+SCO_552|STEM Lab Meeting and Structure|12
+SCO_553|Lab Safety|3
+SCO_554|Working with STEM Scouts|3
+SCO_555|STEM Scouts Committee|9
+SCO_578|Creating an Alumni Committee|8
+SCO_579|Alumni Committee Chair Responsibilities|8
+SCO_580|Alumni The Scout Executive's Role|8
+SCO_581|Alumni Community Groups Relationships|8
+SCO_582|Alumni Awards and Recognition|8
+SCO_583|Alumni Communication|8
+SCO_600|Sea Scout Getting Started|12
+SCO_601|Starting and Reorganizing Your Ship|9
+SCO_602|Planning Your Ships Program|9
+SCO_603|Sea Scout Youth Leadership Development|8
+SCO_604|Sea Scout Resources|11
+SCO_605|Sea Scout Advancement|6
+SCO_607|What is Sea Scouts|13
+SCO_620|Planning a Long Cruise|14
+SCO_621|Executing a Long Cruise|19
+SCO_756|Servicing Exploring Units|17
+SCO_770|Unit Service Concepts-Unit Commissioner|4
+SCO_771|District Level Unit Service|8
+SCO_772|Unit Contacts|8
+SCO_773|Unit Assessments|5
+SCO_774|Commissioner Tools Navigation and Simple Assessments|4
+SCO_775|Detailed Assessments and Unit Service Plan|4
+SCO_776|Unit Service Plan v2|10
+SCO_777|The District|5
+SCO_778|Working with New Units|5
+SCO_779|Youth Protection and Unit Resources|6
+SCO_780|Charter Renewal|6
+SCO_781|Commissioner Development|12
+SCO_782|Roundtable Fundamentals|8
+SCO_783|Roundtable Administration|7
+SCO_784|Roundtable Organization|8
+SCO_785|Roundtable Preparation|16
+SCO_786|Components of Roundtable|8
+SCO_787|Roundtable Tools|5
+SCO_788|Roles of the Council Commissioner|9
+SCO_789|Building the Team|11
+SCO_790|Meetings of the Council Commissioner v2|6
+SCO_791|Monitoring Unit Service|11
+SCO_792|Commissioner Tools Reports|4
+SCO_793|Commissioner Tools for Administrative Commissioners|4
+SCO_794|Commissioner Tools for Roundtable Commissioners|4
+SCO_795|Developing and Recognizing Commissioners|6
+SCO_796|Council Support|6
+SCO_800|Hazardous Weather Training|28
+SCO_801|Safe Swim Defense|26
+SCO_802|Safety Afloat|30
+SCO_804|Climb On Safely|13
+SCO_805|Drive Safely|60
+SCO_806|Volunteer Impact on Membership|11
+SCO_807|Recruiting Unit Leaders|5
+SCO_808|Volunteer Recruitment|7
+SCO_809|Succession Planning|9
+SCO_822|Range Activities Safety|30
+SCO_900|Unit Service in the District|14
+SCO_901|Selecting & Assigning Unit Commissioners|5
+SCO_902|Monitoring Unit Service in the District|11
+SCO_903|Monthly District Commissioner Meeting|6
+SCO_904|Unit Service Concepts-Roundtable Commissioner|4
+SCO_905|Unit Service Concepts-Council Commissioner|5
+SCO_906|Unit Service Concepts-District Commissioner|4
+SCO_907|Charter Renewal in the District|6
+SCO_908|Developing and Recognizing Commissioners - District|6
+SCO_1000|Aims and Methods|11
+SCO_1002|BSA Organizational Structure Development|9
+SCO_1003|What is Boy Scouting|13
+SCO_1004|What is Cub Scouting|12
+SCO_1005|What is Exploring?|10
+SCO_1006|What is Learning for Life?|8
+SCO_1007|What is Venturing?|10
+SCO_1012|District Committee Structure|7
+SCO_1018|Profile for a District Chair|10
+SCO_1042|New Unit Applications|6
+SCO_1047|Selling Exploring to a CEO|8
+SCO_1048|Develop an Explorer Post Program|8
+SCO_1049|Conduct an Exploring Open House|8
+SCO_1061|Community Campaign-Build I C 5 or Table Host Team|7
+SCO_1062|District Fund Development Committee Guidebook|12
+SCO_1063|Family Campaign - Family FOS Presenter Qualities|10
+SCO_1064|Family Campaign Family FOS Presentation|12
+SCO_1066|Family Campaign How to Make a Family FOS Ask|12
+SCO_1067|Fundraising Cycle|4
+SCO_1068|Mechanics of a Campaign|12
+SCO_1076|Customizing Promotional Fliers for Units|11
+SCO_1077|Membership Cycle|12
+SCO_1078|New Unit Development Process|6
+SCO_1109|What is Scouts BSA|13
+SCO_1200|Chaplain Roles and Responsibilities|30
+SCO_1201|Religious Emblems and Awards|20
+SCO_1202|Interfaith Considerations|12
+SCO_1203|Selling Exploring to Guidance Counselors|7
+SCO_1264|Membership Ethics|15
+SCO_1265|School Talks|10
+SCO_1266|Council Market Analysis v2|24
+SCO_1500|District Key 3|5
+SCO_1501|Program Chair Overview|3
+SCO_1502|District Resources|9
+SCO_1503|Expectations and Accountability|5
+SCO_1504|my.scouting Tools|14
+SCO_1505|District Relationship to the Council|6
+SCO_1506|District Evaluation and JTE|6
+SCO_1507|Recruiting District People|15
+SCO_1508|Planning for Success|4
+SCO_1509|Camping and Outdoor Chair|4
+SCO_1510|Training Chair|11
+SCO_1800|Diversity, Inclusion, & Belonging in Scouting|30
+SCO_3014|Safeguarding Youth|90
+SCO_3014S|Protección de los jóvenes|90
+SCO_3015|Peer On Peer Abuse|60
+SCO_3016|Safeguarding Youth Refresher|20
+SCO_3016S|Curso de actualización SYT|20
+SCO_11000|Strategic Training Plan Objectives and Goals|5
+SCO_11001|Introduction to SMART Goals|5
+SCO_11002|SWOT Analysis|12
+SCO_11003|Introduction to Downloading Training Data|12
+SCO_11004|Available Resources for Council & Dist Trng Teams|12
+SCO_11012|District Committee Structure v2|9
+SCO_11013|Four Functions of a District v2|12
+SCO_11016|District Meetings - District Committee Meeting v2|19
+SCO_11017|Meetings of the District - Key 3 Video v2|9
+SCO_11027|Backdating v2|10
+SCO_11040|Adult Applications v2|12
+SCO_11043|Registration Fees v2|8
+SCO_11044|Youth Applications v2|9
+SCO_11053|Commissioner Structure v2|13
+SCO_11056|What is Commissioner Service v2|8
+SCO_11059|Council Budget v2|12
+SCO_11060|Community Campaign Asking for a FOS Gift v2|9
+SCO_11065|Family Campaign Followup Family FOS v2|7
+SCO_11080|New Unit Organization Committee v2|9
+SCO_11083|Recruiting Event Time Line and Roles v2|10
+SCO_11100|Volunteer Recruitment Call v2|8
+SCO_11105|Activities and Civic Service v2|9
+SCO_11106|Advancement v2|9
+SCO_11107|Scouting Safely v2|13
+SCO_11108|BSA Insurance Coverage v2|12
+SCO_12000|Welcome and Overview|3
+SCO_12002|Health and Safety in Wood Badge|4
+SCO_12008|Youth in Wood Badge|5
+SCO_12010|Time Management|5
+SCO_12013|Culture Heart of a Servant|17
+SCO_12014|WB Staff Recruiting and Development|16
+SCO_12015|WB Team Based Learning|5
+SCO_12016|WB Methods and Model|16
+SCO_12017|Wood Badge Pre-course Orientation|30
+SCO_14001|Foundations of Cub Scout Day Camp|120
+SCO_14003|National Camp Accreditation Program Overview|12
+SCO_14004|Preparing for an Assessment|12
+SCO_14005|The Assessment|12
+SCO_14006|Standards and Scoring|12
+SCO_14007|The Authorization Process|12
+SCO_16001|Specific Duties of the Board|8
+SCO_16002|Council Functions|5
+SCO_16003|Local Council Relationship to National Council|18
+SCO_16004|More About the Local Council|5
+SCO_16005|Board Governance Obedience, Care, and Loyalty|7
+SCO_16006|Responsibilities of the Council Officers|13
+SCO_16007|Strategic Planning|15
+SCO_16008|The Local Council Funding Program|17
+SCO_16009|Understanding the Council Financial Statements|7
+SCO_16010|President Guidelines in Leading Others|7
+SCO_16011|President Guidelines in Leading the Organization|5
+SCO_18000|DCSA Introduction|5
+SCO_18001|DCSA Role of the Adviser|11
+SCO_18002|DCSA Projects|18
+SCO_18003|DCSA Requirements|21
+SCO_18004|DCSA Categories|25
+SCO_18005|DCSA Workbook|14
+SCO_18006|DCSA Field Trip|12
+SCO_18007|DCSA Documentation|17
+SCO_19000|The OWASP Top 10|60
+SCO_19001|Secure Coding|60
+SCO_20001|Lodge Adviser Onboarding Training Introduction|12
+SCO_20002|Youth Led|10
+SCO_20003|Lodge Adviser Onboarding - The Key 3|10
+SCO_20004|Handbook for Officers and Advisers|10
+SCO_20005|Lodge Adviser Onboarding Training Resources|10
+SCO_20006|Lodge Communications|10
+SCO_20007|Selecting Your Associates|10
+SCO_20008|Lodge Elections|10
+SCO_20009|Lodge Inductions|10
+SCO_20010|Ceremonies|10
+SCO_20011|What is the LEC?|10
+SCO_20012|Roberts Rules of Order|10
+SCO_20014|Logistics and Resources|7
+SCO_20015|Why We Train Leaders|4
+SCO_20016|How We Train Leaders Part 1|13
+SCO_20017|How We Train Leaders Part 2|10
+SCO_20018|How People Learn|18
+SCO_20019|Effective Presenters|10
+SCO_20020|Design Principles|10
+SCO_20021|Teaching in a Virtual Environment|15
+`;
+const CATALOG = {};
+CATALOG_TEXT.trim().split('\n').forEach(line => {
+  const [code, name, min, path] = line.split('|');
+  CATALOG[code] = { name, minutes: min ? Number(min) : null, path: path || null };
+});
+
+/* Classroom courses. Finishing the online courses counts as completing these, except the ones listed in CLASSROOM_STILL_REQUIRED. */
+const CLASSROOM = {
+  C40: 'Cubmaster and Assistant Cubmaster Position Specific Training',
+  C42: 'Den Leader and Assistant Den Leader Position Specific Training',
+  C60: 'Pack Committee Position Specific Training',
+  D72: 'Training the Chartered Organization Representative',
+  S24: 'Scoutmaster Specific Training',
+  S11: 'Introduction to Outdoor Leader Skills (IOLS)',
+  D76: 'Merit Badge Counselor Orientation Training',
+  WS10: 'Troop Committee Position Specific Training',
+  P21: 'Venturing Leader Specific Training',
+  WS12: 'Crew Committee Specific Training',
+  P44: 'Sea Scout Adult Leader Basic Training',
+  D19: 'Roundtable Commissioner Position-Specific Training',
+  D20: 'Unit Commissioner Position-Specific Training'
+};
+const CLASSROOM_STILL_REQUIRED = new Set(['S11']);
+
+function courseInfo(code) {
+  const c = CATALOG[code];
+  const url = c && c.path ? BASE + c.path : (/^SCO_\d+$/.test(code) ? BASE + '/courses/' + code : BASE + '/');
+  return { code, name: c ? c.name : code, minutes: c ? c.minutes : null, url, known: !!c };
+}
+function codeOrder(code) {
+  const m = /(\d+)$/.exec(code);
+  return m ? Number(m[1]) : 1e9;
+}
+
+/* ---------- CSV parsing ---------- */
+function parseCSV(text) {
+  text = text.replace(/^﻿/, '');
+  const rows = [];
+  let row = [], field = '', quoted = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (quoted) {
+      if (ch === '"') {
+        if (text[i + 1] === '"') { field += '"'; i++; } else { quoted = false; }
+      } else { field += ch; }
+    } else if (ch === '"') { quoted = true; }
+    else if (ch === ',') { row.push(field); field = ''; }
+    else if (ch === '\n' || ch === '\r') {
+      if (ch === '\r' && text[i + 1] === '\n') i++;
+      row.push(field); field = ''; rows.push(row); row = [];
+    } else { field += ch; }
+  }
+  if (field !== '' || row.length) { row.push(field); rows.push(row); }
+  return rows;
+}
+
+function splitCodes(s) {
+  return (s || '').split(/[,;\s]+/).map(x => x.trim().toUpperCase()).filter(Boolean);
+}
+function uniq(arr) { return Array.from(new Set(arr)); }
+
+/* ---------- Program detection: Pack, Troop, Crew or Ship ---------- */
+const PROGRAM_LABEL = { pack: 'Pack', troop: 'Troop', crew: 'Crew', ship: 'Ship' };
+function programFromText(t) {
+  t = (t || '').toLowerCase();
+  let m = t.match(/\b(pack|troop|crew|ship)\b/);
+  if (m) return m[1];
+  if (/cub scout|cub scouting/.test(t)) return 'pack';
+  if (/scouts bsa|boy scout|scouting america troop/.test(t)) return 'troop';
+  if (/venturing/.test(t)) return 'crew';
+  if (/sea scout/.test(t)) return 'ship';
+  return '';
+}
+/* The Unit column ("Pack 0088") is the most direct signal, then the Program column, then the organization name. Majority wins if a report mixes units. */
+function detectProgram(people, meta) {
+  const tally = {};
+  const vote = fn => people.forEach(p => { const k = programFromText(fn(p)); if (k) tally[k] = (tally[k] || 0) + 1; });
+  vote(p => p.unit);
+  if (!Object.keys(tally).length) vote(p => p.program);
+  const top = Object.keys(tally).sort((a, b) => tally[b] - tally[a])[0];
+  return top || programFromText(meta && meta.organization) || '';
+}
+
+/* ---------- Report -> people ---------- */
+function parseReport(text) {
+  const rows = parseCSV(text);
+  const headerIdx = rows.findIndex(r => r.includes('First_Name') && r.includes('Last_Name'));
+  if (headerIdx < 0) {
+    throw new Error('This does not look like a Trained Leaders report. The header row with First_Name and Last_Name was not found.');
+  }
+  const header = rows[headerIdx].map(h => h.trim());
+  const need = ['Position', 'Trained'];
+  const missing = need.filter(h => !header.includes(h));
+  if (missing.length) throw new Error('The report is missing the column ' + missing.join(', ') + '.');
+
+  const meta = { council: '', organization: '', generatedBy: '', generatedOn: '' };
+  rows.slice(0, headerIdx).forEach(r => {
+    const line = r.join(',').trim();
+    const i = line.indexOf(':');
+    if (i < 0) return;
+    const key = line.slice(0, i).trim().toLowerCase();
+    const val = line.slice(i + 1).trim();
+    if (key === 'council') meta.council = val;
+    else if (key === 'organization name') meta.organization = val;
+    else if (key === 'report generated by') meta.generatedBy = val;
+    else if (key === 'date report generated') meta.generatedOn = val;
+  });
+
+  const groups = new Map();
+  rows.slice(headerIdx + 1).forEach(r => {
+    if (r.every(c => !c.trim())) return;
+    const rec = {};
+    header.forEach((h, i) => { rec[h] = (r[i] || '').trim(); });
+    if (!rec.First_Name && !rec.Last_Name) return;
+    const key = rec.MemberID || (rec.Email + '|' + rec.First_Name + '|' + rec.Last_Name);
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(rec);
+  });
+
+  const unknown = new Set();
+  const people = [];
+  groups.forEach((recs, key) => {
+    const first = recs[0];
+    const mandatory = uniq(recs.flatMap(r => splitCodes(r.Incomplete_Mandatory)));
+    const classroom = uniq(recs.flatMap(r => splitCodes(r.Incomplete_Classroom)));
+    const online = uniq(recs.flatMap(r => splitCodes(r.Incomplete_Online)))
+      .filter(c => !mandatory.includes(c))
+      .sort((a, b) => codeOrder(a) - codeOrder(b));
+
+    const classroomRequired = classroom.filter(c => CLASSROOM_STILL_REQUIRED.has(c));
+    const classroomCovered = classroom.filter(c => !CLASSROOM_STILL_REQUIRED.has(c));
+
+    const todo = [
+      ...mandatory.map(c => Object.assign(courseInfo(c), { kind: 'required' })),
+      ...online.map(c => Object.assign(courseInfo(c), { kind: 'online' }))
+    ];
+    todo.forEach(t => { if (!t.known) unknown.add(t.code); });
+
+    const trained = recs.every(r => r.Trained.toUpperCase() === 'YES');
+    let status = 'done';
+    if (todo.length || classroomRequired.length) status = 'todo';
+    else if (classroomCovered.length || !trained) status = 'review';
+
+    const minutesKnown = todo.every(t => t.minutes);
+    const totalMinutes = todo.reduce((s, t) => s + (t.minutes || 0), 0);
+
+    people.push({
+      id: key,
+      first: first.First_Name,
+      last: first.Last_Name,
+      name: (first.First_Name + ' ' + first.Last_Name).trim(),
+      email: (first.Email || '').trim(),
+      unit: first.Unit || '',
+      program: first.Program || '',
+      positions: uniq(recs.map(r => r.Position).filter(Boolean)),
+      direct: recs.some(r => (r.Direct_Contact_Leader || '').toUpperCase() === 'YES'),
+      trained, status, todo,
+      onlineCount: online.length,
+      classroomCovered: classroomCovered.map(c => ({ code: c, name: CLASSROOM[c] || c })),
+      classroomRequired: classroomRequired.map(c => ({ code: c, name: CLASSROOM[c] || c })),
+      totalMinutes: minutesKnown ? totalMinutes : null,
+      knownMinutes: totalMinutes
+    });
+  });
+  people.sort((a, b) => a.last.localeCompare(b.last) || a.first.localeCompare(b.first));
+  return { meta, people, unknown: Array.from(unknown) };
+}
+
+/* ---------- Email text ---------- */
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+function sentence(arr) {
+  if (arr.length <= 1) return arr.join('');
+  if (arr.length === 2) return arr.join(' and ');
+  return arr.slice(0, -1).join(', ') + ', and ' + arr[arr.length - 1];
+}
+function duration(m) {
+  const h = Math.floor(m / 60), r = m % 60;
+  if (!h) return m + ' min';
+  return r ? h + ' hr ' + r + ' min' : h + ' hr';
+}
+function formatDue(iso) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
+  return m ? MONTHS[Number(m[2]) - 1] + ' ' + Number(m[3]) + ', ' + m[1] : '';
+}
+function validEmail(e) { return /^[^\s@,;]+@[^\s@,;]+\.[^\s@,;]+$/.test(e || ''); }
+
+function buildEmail(p, opts) {
+  opts = opts || {};
+  const n = p.todo.length;
+  const unit = p.unit || 'our unit';
+  const subject = unit + ': ' + (n ? n + ' training course' + (n === 1 ? '' : 's') + ' left to finish' : 'training to finish');
+  const L = [];
+  L.push('Hi ' + p.first + ',', '');
+  if (opts.why && opts.why.trim()) L.push(opts.why.trim(), '');
+  if (opts.note && opts.note.trim()) L.push(opts.note.trim(), '');
+  const thanks = 'Thank you for serving as ' + sentence(p.positions) + ' for ' + unit + '.';
+  if (!n) {
+    L.push(thanks, '');
+  } else if (!p.classroomRequired.length) {
+    L.push(thanks + ' Completing ' + (n === 1 ? 'the course below will make you a trained leader:' : 'the courses below will make you a trained leader:'), '');
+  } else {
+    L.push(thanks + ' ' + (n === 1 ? 'This course is' : 'These courses are') + ' still open on your training record:', '');
+  }
+  p.todo.forEach((c, i) => {
+    L.push((i + 1) + '. ' + c.name + (c.minutes ? ' (about ' + c.minutes + ' min)' : ''));
+    L.push('   ' + c.url);
+  });
+  L.push('');
+  if (n > 1 && p.totalMinutes) L.push('Total time: about ' + duration(p.totalMinutes) + '.');
+  if (n) L.push('Sign in with your my.Scouting account to take ' + (n === 1 ? 'it.' : 'them.'));
+  if (n) L.push('');
+  const due = formatDue(opts.due);
+  if (due) L.push('Please finish by ' + due + '.', '');
+  if (p.onlineCount > 0 && p.classroomCovered.length && !p.classroomRequired.length) {
+    L.push('There is no classroom session to attend. The online courses cover it.', '');
+  }
+  p.classroomRequired.forEach(c => {
+    L.push((p.classroomCovered.length ? 'The online courses cover the rest of your classroom training. ' : '') +
+      c.name + ' is the one class you still need to attend in person. Check with your council for the next session.', '');
+  });
+  if (opts.signature && opts.signature.trim()) L.push(opts.signature.trim());
+  return { to: p.email, subject, body: L.join('\n').replace(/\s+$/, '') };
+}
+
+function csvCell(v) { v = String(v == null ? '' : v); return /[",\n\r]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }
+function mergeTable(people, opts) {
+  const head = ['Email', 'First_Name', 'Last_Name', 'Positions', 'Subject', 'Courses', 'Body'];
+  const lines = [head.join(',')];
+  people.forEach(p => {
+    const e = buildEmail(p, opts);
+    const courses = p.todo.map(c => c.name + ' - ' + c.url).join('\n');
+    lines.push([p.email, p.first, p.last, p.positions.join(' / '), e.subject, courses, e.body].map(csvCell).join(','));
+  });
+  return lines.join('\n');
+}
+function allDrafts(people, opts) {
+  return people.map(p => {
+    const e = buildEmail(p, opts);
+    return 'To: ' + e.to + '\nSubject: ' + e.subject + '\n\n' + e.body;
+  }).join('\n\n------------------------------\n\n');
+}
+</script>
+
+<script id="ui">
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+const SAMPLE_CSV = [
+  'Report: Trained Leaders Status',
+  'Council: Example Council',
+  'Organization Name: Pack 0000, Example Elementary PTA',
+  'Report Generated By: Pat Example',
+  'Date Report Generated: 01/15/2027',
+  '..',
+  'Unit,First_Name,Middle_Name,Last_Name,MemberID,Program,Email,Position,Direct_Contact_Leader,Trained,Incomplete_Mandatory,Incomplete_Classroom,Incomplete_Online',
+  '"Pack 0000","Alex","","Rivera","1001","Cub Scouting","alex.rivera@example.com","Den Leader","YES","NO","SCO_800","C42","SCO_450, SCO_451, SCO_452, SCO_453, SCO_454, SCO_455"',
+  '"Pack 0000","Priya","","Shah","1002","Cub Scouting","priya.shah@example.com","Committee Member","NO","NO","","C60","SCO_459, SCO_462, SCO_463"',
+  '"Pack 0000","Sam","","Ortega","1003","Cub Scouting","sam.ortega@example.com","Assistant Cubmaster","YES","NO","Y01","C40",""',
+  '"Pack 0000","Jordan","","Lee","1004","Cub Scouting","jordan.lee@example.com","Cubmaster","YES","YES","","",""'
+].join('\n');
+
+const state = { meta: null, people: [], unknown: [], sample: false, selected: new Set(), open: new Set(), query: '', tab: 'status', program: '', loaded: false };
+
+const DEFAULT_WHY = 'Every young person in Scouting deserves a leader who understands the program and knows how to deliver it with enthusiasm and fun. ' +
+  'Training is how we get there. Trained leaders understand their role, and that understanding shapes the lives of the youth we serve.';
+const DEFAULT_SIGNATURE = 'Yours in Scouting,\n[Your name]\n[Your position, unit number]';
+
+function opts() {
+  return { why: $('#whyText').value, due: $('#dueDate').value, note: $('#customNote').value, signature: $('#signature').value };
+}
+function toast(msg) {
+  const t = $('#toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+/* ---------- Loading ---------- */
+function applyProgram(prog) {
+  const root = document.documentElement;
+  if (prog) root.setAttribute('data-program', prog); else root.removeAttribute('data-program');
+  const h = $('#programBadge');
+  if (h) { h.textContent = prog ? PROGRAM_LABEL[prog] : ''; h.hidden = !prog; }
+}
+function loadText(text, isSample) {
+  const err = $('#loadError');
+  try {
+    const r = parseReport(text);
+    state.meta = r.meta; state.people = r.people; state.unknown = r.unknown; state.sample = !!isSample;
+    state.selected = new Set(r.people.filter(p => p.status === 'todo' && validEmail(p.email)).map(p => p.id));
+    state.open = new Set();
+    state.loaded = true;
+    state.program = detectProgram(r.people, r.meta);
+    applyProgram(state.program);
+    err.hidden = true;
+    setTab('status');
+    render();
+  } catch (e) {
+    err.textContent = e.message;
+    err.hidden = false;
+  }
+}
+function clearData() {
+  state.meta = null; state.people = []; state.unknown = []; state.sample = false; state.loaded = false;
+  state.selected = new Set(); state.open = new Set(); state.query = ''; state.program = '';
+  $('#search').value = '';
+  applyProgram('');
+  setTab('status');
+  render();
+}
+function readFile(file) {
+  if (!file) return;
+  const fr = new FileReader();
+  fr.onload = () => loadText(String(fr.result), false);
+  fr.onerror = () => { $('#loadError').textContent = 'The file could not be read.'; $('#loadError').hidden = false; };
+  fr.readAsText(file);
+}
+
+/* ---------- Rendering ---------- */
+function matches(p) {
+  const q = state.query.trim().toLowerCase();
+  if (!q) return true;
+  return (p.name + ' ' + p.email + ' ' + p.positions.join(' ')).toLowerCase().includes(q);
+}
+function countLabel(p) {
+  const n = p.todo.length + p.classroomRequired.length;
+  return '<strong>' + n + ' course' + (n === 1 ? '' : 's') + '</strong>' + (p.totalMinutes ? '<span>about ' + duration(p.totalMinutes) + '</span>' : '');
+}
+function courseRow(c) {
+  return '<li class="course"><a href="' + esc(c.url) + '" target="_blank" rel="noopener">' + esc(c.name) + '</a>' +
+    '<span class="code">' + esc(c.code) + '</span>' +
+    (c.kind === 'required' ? '<span class="tag">Required</span>' : '') +
+    (!c.known ? '<span class="tag warn">Not in catalog</span>' : '') +
+    (c.minutes ? '<span class="min">' + c.minutes + ' min</span>' : '') + '</li>';
+}
+function leaderCard(p) {
+  const e = buildEmail(p, opts());
+  const ok = validEmail(p.email);
+  const mailto = 'mailto:' + p.email + '?subject=' + encodeURIComponent(e.subject) + '&body=' + encodeURIComponent(e.body).replace(/%0A/g, '%0D%0A');
+  const classroom = p.classroomRequired.map(c => '<li class="course"><span>' + esc(c.name) + '</span><span class="code">' + esc(c.code) + '</span><span class="tag">In person</span></li>').join('');
+  const note = (p.onlineCount > 0 && p.classroomCovered.length)
+    ? '<p class="note">The online courses cover ' + p.classroomCovered.map(c => esc(c.name)).join(' and ') + '. ' +
+      (p.classroomRequired.length ? 'The in-person class listed above is still required.' : 'No classroom session is needed.') + '</p>' : '';
+  return '<article class="leader" data-id="' + esc(p.id) + '">' +
+    '<div class="leader-head"><label class="pick"><input type="checkbox" class="sel" data-id="' + esc(p.id) + '"' + (state.selected.has(p.id) ? ' checked' : '') + (ok ? '' : ' disabled') + ' aria-label="Include ' + esc(p.name) + '"></label>' +
+    '<div class="who"><h3>' + esc(p.name) + '</h3><p class="pos">' + esc(p.positions.join(', ')) + '</p></div>' +
+    '<div class="count">' + countLabel(p) + '</div></div>' +
+    '<ul class="courses">' + p.todo.map(courseRow).join('') + classroom + '</ul>' + note +
+    '<div class="leader-foot">' +
+    (ok ? '<span class="addr">' + esc(p.email) + '</span>' : '<span class="addr missing">No valid email address in the report</span>') +
+    '<div class="acts">' +
+    (ok ? '<a class="btn small primary" href="' + esc(mailto) + '">Open in email app</a>' : '') +
+    (ok && mailto.length > 2000 ? '<span class="hint">Long email. If it opens cut off, use Copy email.</span>' : '') +
+    '<button class="btn small" type="button" data-act="copy-email" data-id="' + esc(p.id) + '">Copy email</button>' +
+    (ok ? '<button class="btn small" type="button" data-act="copy-addr" data-id="' + esc(p.id) + '">Copy address</button>' : '') +
+    '<button class="btn small" type="button" data-act="preview" data-id="' + esc(p.id) + '" aria-expanded="' + state.open.has(p.id) + '">' + (state.open.has(p.id) ? 'Hide email' : 'Show email') + '</button>' +
+    '</div></div>' +
+    '<pre class="preview"' + (state.open.has(p.id) ? '' : ' hidden') + '>Subject: ' + esc(e.subject) + '\n\n' + esc(e.body) + '</pre>' +
+    '</article>';
+}
+function render() {
+  const { meta, people } = state;
+  $('#reportMeta').textContent = meta ? [meta.organization, meta.council, meta.generatedOn && 'Report from ' + meta.generatedOn].filter(Boolean).join(' · ') : '';
+  $('#sampleBanner').hidden = !state.sample;
+  $('#welcome').hidden = state.loaded;
+  $('#workspace').hidden = !state.loaded;
+  $('#panelMsg').hidden = !state.loaded;
+  $('#panelBulk').hidden = !state.loaded;
+
+  const todo = people.filter(p => p.status === 'todo');
+  const review = people.filter(p => p.status === 'review');
+  const done = people.filter(p => p.status === 'done');
+  const courseTotal = todo.reduce((s, p) => s + p.todo.length + p.classroomRequired.length, 0);
+  $('#summary').innerHTML =
+    '<span><strong>' + people.length + '</strong> people</span>' +
+    '<span><strong>' + todo.length + '</strong> need training</span>' +
+    '<span><strong>' + courseTotal + '</strong> courses open</span>' +
+    (review.length ? '<span><strong>' + review.length + '</strong> to check</span>' : '') +
+    '<span><strong>' + done.length + '</strong> fully trained</span>';
+
+  const un = $('#unknownNote');
+  if (state.unknown.length) {
+    un.hidden = false;
+    un.innerHTML = 'Course codes not in the catalog: <span class="addr">' + esc(state.unknown.join(', ')) + '</span>. They are listed by code and link to the course page of the same code.';
+  } else { un.hidden = true; }
+
+  const vTodo = todo.filter(matches), vReview = review.filter(matches), vDone = done.filter(matches);
+  let html = '';
+  if (vTodo.length) html += '<section><h2 class="sect-title">Needs training (' + vTodo.length + ')</h2><div class="cards">' + vTodo.map(leaderCard).join('') + '</div></section>';
+  if (vReview.length) {
+    html += '<section><h2 class="sect-title">Check in My.Scouting (' + vReview.length + ')</h2><div class="cards">' +
+      vReview.map(p => '<article class="leader"><div class="leader-head"><div class="who"><h3>' + esc(p.name) + '</h3><p class="pos">' + esc(p.positions.join(', ')) + '</p></div></div>' +
+        '<p class="note">' + (p.classroomCovered.length ? 'All online courses are done, but the report still lists ' + p.classroomCovered.map(c => esc(c.name)).join(' and ') + '.' : 'The report says not trained, but lists no open courses.') + ' No reminder was drafted.</p></article>').join('') +
+      '</div></section>';
+  }
+  if (vDone.length) html += '<details class="done"><summary>Fully trained (' + vDone.length + ')</summary><ul>' + vDone.map(p => '<li>' + esc(p.name) + '<br><span>' + esc(p.positions.join(', ')) + '</span></li>').join('') + '</ul></details>';
+  if (!html) html = '<p class="empty">' + (people.length ? 'No one matches that search.' : 'Choose a Trained Leaders CSV to see what each leader still needs.') + '</p>';
+  $('#list').innerHTML = html;
+
+  const eligible = todo.filter(p => validEmail(p.email));
+  const chosen = eligible.filter(p => state.selected.has(p.id));
+  $('#selAll').checked = eligible.length > 0 && chosen.length === eligible.length;
+  $('#selAll').indeterminate = chosen.length > 0 && chosen.length < eligible.length;
+  $('#selAll').disabled = !eligible.length;
+  $('#selLabel').textContent = chosen.length + ' of ' + eligible.length + ' leaders selected';
+  renderMetrics();
+}
+
+/* ---------- Training status tab ---------- */
+function renderMetrics() {
+  const host = $('#metrics');
+  const people = state.people;
+  if (!people.length) { host.innerHTML = '<p class="empty">Load a report to see where the unit stands.</p>'; return; }
+
+  const total = people.length;
+  const done = people.filter(p => p.status === 'done');
+  const todo = people.filter(p => p.status === 'todo');
+  const review = people.filter(p => p.status === 'review');
+  const pct = (n, d) => d ? Math.round(100 * n / d) : 0;
+  const seg = (n, cls, label) => n ? '<span class="seg ' + cls + '" style="flex:' + n + '" title="' + label + ': ' + n + '"></span>' : '';
+
+  const open = todo.reduce((s, p) => s + p.todo.length + p.classroomRequired.length, 0);
+  const minutes = todo.reduce((s, p) => s + p.knownMinutes, 0);
+  const avg = todo.length ? Math.round(minutes / todo.length) : 0;
+  const direct = people.filter(p => p.direct);
+  const directDone = direct.filter(p => p.status === 'done').length;
+
+  let html = '<section class="m-hero" aria-label="Overall progress">' +
+    '<div class="m-big"><strong>' + pct(done.length, total) + '%</strong><span>of ' + total + ' people are fully trained' +
+    (state.meta && state.meta.generatedOn ? ' (report from ' + esc(state.meta.generatedOn) + ')' : '') + '</span></div>' +
+    '<div class="stack" role="img" aria-label="' + done.length + ' fully trained, ' + todo.length + ' need training, ' + review.length + ' to check">' +
+    seg(done.length, 'ok', 'Fully trained') + seg(todo.length, 'need', 'Need training') + seg(review.length, 'check', 'To check') + '</div>' +
+    '<ul class="legend"><li><i class="ok"></i>Fully trained <b>' + done.length + '</b></li>' +
+    '<li><i class="need"></i>Need training <b>' + todo.length + '</b></li>' +
+    (review.length ? '<li><i class="check"></i>To check <b>' + review.length + '</b></li>' : '') + '</ul></section>';
+
+  html += '<div class="kpis">' +
+    '<div class="kpi"><strong>' + open + '</strong><span>courses still open</span></div>' +
+    '<div class="kpi"><strong>' + (minutes ? duration(minutes) : '0 min') + '</strong><span>of training left in the unit</span></div>' +
+    '<div class="kpi"><strong>' + (avg ? duration(avg) : '0 min') + '</strong><span>average per leader still training</span></div>' +
+    (direct.length ? '<div class="kpi"><strong>' + directDone + ' of ' + direct.length + '</strong><span>direct contact leaders trained</span></div>' : '') +
+    '</div>';
+
+  /* By position */
+  const byPos = new Map();
+  people.forEach(p => p.positions.forEach(pos => {
+    if (!byPos.has(pos)) byPos.set(pos, { pos, n: 0, done: 0, todo: 0, review: 0 });
+    const g = byPos.get(pos); g.n++; g[p.status]++;
+  }));
+  const rows = [...byPos.values()].sort((a, b) => b.n - a.n || a.pos.localeCompare(b.pos));
+  html += '<section class="m-card"><h2>By position</h2><div class="tblwrap"><table class="pos"><thead><tr>' +
+    '<th>Position</th><th class="n">People</th><th class="n">Trained</th><th class="n">Need training</th>' + (review.length ? '<th class="n">To check</th>' : '') + '<th class="prog">Progress</th></tr></thead><tbody>' +
+    rows.map(g => '<tr><td>' + esc(g.pos) + '</td><td class="n">' + g.n + '</td><td class="n">' + g.done + '</td><td class="n">' + g.todo + '</td>' +
+      (review.length ? '<td class="n">' + g.review + '</td>' : '') +
+      '<td class="prog"><div class="stack" role="img" aria-label="' + pct(g.done, g.n) + ' percent trained">' + seg(g.done, 'ok', 'Fully trained') + seg(g.todo, 'need', 'Need training') + seg(g.review, 'check', 'To check') + '</div></td></tr>').join('') +
+    '</tbody></table></div><p class="m-note">Someone with two positions counts in both rows.</p></section>';
+
+  /* Most-missed courses */
+  const miss = new Map();
+  const add = (info, p) => {
+    if (!miss.has(info.code)) miss.set(info.code, { info, n: 0 });
+    miss.get(info.code).n++;
+  };
+  todo.forEach(p => {
+    p.todo.forEach(c => add(c, p));
+    p.classroomRequired.forEach(c => add({ code: c.code, name: c.name, url: null, kind: 'inperson', known: true }, p));
+  });
+  const ranked = [...miss.values()].sort((a, b) => b.n - a.n || codeOrder(a.info.code) - codeOrder(b.info.code));
+  const missRow = m => {
+    const i = m.info;
+    return '<li class="miss"><div class="miss-top">' +
+      (i.url ? '<a href="' + esc(i.url) + '" target="_blank" rel="noopener">' + esc(i.name) + '</a>' : '<span>' + esc(i.name) + '</span>') +
+      '<span class="code">' + esc(i.code) + '</span>' +
+      (i.kind === 'required' ? '<span class="tag">Required</span>' : '') +
+      (i.kind === 'inperson' ? '<span class="tag">In person</span>' : '') +
+      '<span class="miss-n">' + m.n + ' of ' + todo.length + ' leaders</span></div>' +
+      '<div class="bar" role="img" aria-label="' + pct(m.n, todo.length) + ' percent of leaders still training"><span style="width:' + pct(m.n, todo.length) + '%"></span></div></li>';
+  };
+  if (ranked.length) {
+    html += '<section class="m-card"><h2>Courses leaders are missing most</h2><ul class="miss-list">' + ranked.slice(0, 10).map(missRow).join('') + '</ul>' +
+      (ranked.length > 10 ? '<details class="m-more"><summary>Show the other ' + (ranked.length - 10) + ' courses</summary><ul class="miss-list">' + ranked.slice(10).map(missRow).join('') + '</ul></details>' : '') +
+      '</section>';
+  }
+
+  /* Closest to trained */
+  const close = todo.filter(p => p.todo.length + p.classroomRequired.length <= 3 || p.knownMinutes <= 35)
+    .sort((a, b) => a.knownMinutes - b.knownMinutes || a.last.localeCompare(b.last)).slice(0, 8);
+  if (close.length) {
+    html += '<section class="m-card"><h2>Closest to trained</h2><ul class="win-list">' + close.map(p => {
+      const n = p.todo.length + p.classroomRequired.length;
+      return '<li class="win"><div class="who2"><strong>' + esc(p.name) + '</strong><span>' + esc(p.positions.join(', ')) + ' · ' +
+        esc(p.todo.map(c => c.name).concat(p.classroomRequired.map(c => c.name)).join('; ')) + '</span></div>' +
+        '<span class="wt">' + n + ' course' + (n === 1 ? '' : 's') + (p.knownMinutes ? ' · ' + duration(p.knownMinutes) : '') + '</span></li>';
+    }).join('') + '</ul><p class="m-note">Leaders with three courses or fewer left, or about 35 minutes or less. A short nudge can finish these.</p></section>';
+  }
+
+  host.innerHTML = html;
+}
+
+/* ---------- Copy ---------- */
+async function copyText(text, label, p) {
+  let ok = false;
+  try { await navigator.clipboard.writeText(text); ok = true; } catch (e) { /* fall through */ }
+  if (!ok) {
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = text; ta.setAttribute('readonly', '');
+      ta.style.cssText = 'position:fixed;opacity:0;left:-9999px';
+      document.body.appendChild(ta); ta.select();
+      ok = document.execCommand('copy'); ta.remove();
+    } catch (e) { ok = false; }
+  }
+  if (ok) {
+    $('#fallback').hidden = true;
+    toast('Copied ' + label);
+  } else {
+    $('#fallback').hidden = false;
+    $('#fallbackMsg').textContent = 'Copying is blocked in this view. The text is selected below. Press Ctrl+C or Cmd+C.';
+    const ta = $('#fallbackText');
+    ta.value = text; ta.focus(); ta.select();
+    ta.scrollIntoView({ block: 'nearest' });
+  }
+  return ok;
+}
+function selectedPeople() {
+  return state.people.filter(p => p.status === 'todo' && validEmail(p.email) && state.selected.has(p.id));
+}
+function bulk(kind) {
+  const list = selectedPeople();
+  if (!list.length) { toast('Select at least one leader first'); return; }
+  const n = list.length + ' leader' + (list.length === 1 ? '' : 's');
+  if (kind === 'addr-comma') copyText(list.map(p => p.email).join(', '), 'addresses for ' + n);
+  else if (kind === 'addr-semi') copyText(list.map(p => p.email).join('; '), 'addresses for ' + n);
+  else if (kind === 'drafts') copyText(allDrafts(list, opts()), 'drafts for ' + n);
+  else if (kind === 'csv') copyText(mergeTable(list, opts()), 'mail-merge table for ' + n);
+  else if (kind === 'dl-drafts') download('training-reminder-drafts.txt', allDrafts(list, opts()), 'text/plain');
+  else if (kind === 'dl-csv') download('training-reminders-mail-merge.csv', '﻿' + mergeTable(list, opts()), 'text/csv');
+}
+/* Downloads only work when this file is opened directly, not inside a hosted preview frame, so the buttons stay hidden there. */
+function download(name, text, type) {
+  try {
+    const url = URL.createObjectURL(new Blob([text], { type: type + ';charset=utf-8' }));
+    const a = document.createElement('a');
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1500);
+    toast('Saved ' + name);
+  } catch (e) {
+    toast('Downloads are blocked here. Use the copy buttons.');
+  }
+}
+if (window.top === window.self) document.querySelectorAll('[data-local]').forEach(b => { b.hidden = false; });
+
+/* ---------- Events ---------- */
+$('#csvFile').addEventListener('change', e => { readFile(e.target.files[0]); e.target.value = ''; });
+$('#csvFileBtn').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); $('#csvFile').click(); } });
+const drop = $('#drop');
+['dragenter', 'dragover'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave', 'drop'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', e => readFile(e.dataTransfer.files[0]));
+$('#sampleBtn').addEventListener('click', () => loadText(SAMPLE_CSV, true));
+$('#sampleBtn2').addEventListener('click', () => loadText(SAMPLE_CSV, true));
+$('#clearBtn').addEventListener('click', clearData);
+$('#welcomeFileBtn').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); $('#csvFile').click(); } });
+
+const SAVED = { whyText: 'ltr-why', signature: 'ltr-signature' };
+['whyText', 'dueDate', 'customNote', 'signature'].forEach(id => $('#' + id).addEventListener('input', () => {
+  if (SAVED[id]) { try { localStorage.setItem(SAVED[id], $('#' + id).value); } catch (e) { /* optional */ } }
+  render();
+}));
+function setTab(name) {
+  state.tab = name;
+  ['status', 'leaders'].forEach(t => {
+    const on = t === name;
+    $('#tab-' + t).setAttribute('aria-selected', String(on));
+    $('#tab-' + t).tabIndex = on ? 0 : -1;
+    $('#panel-' + t).hidden = !on;
+  });
+}
+['status', 'leaders'].forEach(t => {
+  $('#tab-' + t).addEventListener('click', () => setTab(t));
+  $('#tab-' + t).addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+      const other = t === 'status' ? 'leaders' : 'status';
+      setTab(other); $('#tab-' + other).focus();
+    }
+  });
+});
+$('#search').addEventListener('input', e => { state.query = e.target.value; render(); });
+$('#selAll').addEventListener('change', e => {
+  const eligible = state.people.filter(p => p.status === 'todo' && validEmail(p.email));
+  state.selected = e.target.checked ? new Set(eligible.map(p => p.id)) : new Set();
+  render();
+});
+document.querySelectorAll('[data-bulk]').forEach(b => b.addEventListener('click', () => bulk(b.dataset.bulk)));
+$('#list').addEventListener('change', e => {
+  if (!e.target.classList.contains('sel')) return;
+  const id = e.target.dataset.id;
+  if (e.target.checked) state.selected.add(id); else state.selected.delete(id);
+  render();
+});
+$('#list').addEventListener('click', e => {
+  const b = e.target.closest('[data-act]');
+  if (!b) return;
+  const p = state.people.find(x => x.id === b.dataset.id);
+  if (!p) return;
+  const em = buildEmail(p, opts());
+  if (b.dataset.act === 'copy-addr') copyText(p.email, 'address for ' + p.first);
+  else if (b.dataset.act === 'copy-email') copyText('To: ' + em.to + '\nSubject: ' + em.subject + '\n\n' + em.body, 'email for ' + p.first);
+  else if (b.dataset.act === 'preview') {
+    if (state.open.has(p.id)) state.open.delete(p.id); else state.open.add(p.id);
+    render();
+  }
+});
+
+/* ---------- Start with the example, clearly marked ---------- */
+$('#whyText').value = DEFAULT_WHY;
+$('#signature').value = DEFAULT_SIGNATURE;
+try {
+  const w = localStorage.getItem('ltr-why'); if (w !== null) $('#whyText').value = w;
+  const s = localStorage.getItem('ltr-signature'); if (s !== null) $('#signature').value = s;
+} catch (e) { /* optional */ }
+window.__app = { loadText, state, buildEmail, parseReport, detectProgram, clearData };
+render();
+</script>
+
+</body>
+</html>
